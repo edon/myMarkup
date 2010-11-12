@@ -1,3 +1,4 @@
+module Parser (parseMarkup)  where
 import Text.ParserCombinators.Parsec hiding (newline)
 import qualified Data.Set as S
 import qualified Tokenizer as T
@@ -9,6 +10,13 @@ type MarkupParser a = GenParser T.Tok () a
 
 testMarkup :: MarkupParser a -> String -> Either ParseError a
 testMarkup p = runParser p () "" . T.toTok . T.tokenize 
+
+parseMarkup :: String -> Either ParseError MarkupAST
+parseMarkup = testMarkup parser 
+
+-- main parser 
+parser :: MarkupParser MarkupAST
+parser = paragraph 
 
 paragraph :: MarkupParser MarkupAST
 paragraph = do 

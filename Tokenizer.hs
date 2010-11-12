@@ -44,7 +44,9 @@ preprocess :: String -> Text
 preprocess s = 
     case parse (many $ getSTextTill "\\" <|> markup) "" s of
       Right r -> r
-      Left e -> error $ "Couldn\'t tokenize: " ++ show e
+      Left e -> []
+--      Left e -> error $ "Couldn\'t tokenize: " ++ show e
+
 
 -- This tokenizes all the Text values, by tokenizing one by one
 -- for indents, headers, and list element signs, there probably is
