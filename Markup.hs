@@ -2,11 +2,16 @@ module Markup where
 
 data TaggedMarkup = 
     Text String
-    | Tag String TaggedMarkup
-      deriving (Show) 
+    | Tag String Text
+      deriving (Show, Eq)
 
-data ListType = Ordered | Unordered
-                deriving (Show)
+type Text = [TaggedMarkup] 
+
+data ListType = 
+    Ordered 
+    | Unordered
+      deriving (Show)
+
 data Node = 
     Paragraph
     | Header Int
@@ -15,6 +20,9 @@ data Node =
     | ListItem 
     | Verbatim
       deriving (Show) 
-data MarkupAST = Node Node [MarkupAST] | Leaf [TaggedMarkup]
-                 deriving (Show) 
+
+data MarkupAST = 
+    Node Node [MarkupAST] 
+    | Leaf Text
+      deriving (Show) 
 
