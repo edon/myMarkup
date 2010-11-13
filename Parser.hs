@@ -17,10 +17,15 @@ parseMarkup = testMarkup parser
 -- main parser 
 parser :: MarkupParser MarkupAST
 parser = do 
-  xs <- many paragraph
+  xs <- many $ paragraph <|> header 
   return $ Node Body xs
 
--- TODO: me i bashku stext-at me spejs n'mes
+header :: MarkupParser MarkupAST
+header = do 
+  i <- sheader
+  xs <- manyTill stext paragraphEnd
+  return $ Node (Header i) [Leaf xs]
+
 paragraph :: MarkupParser MarkupAST
 paragraph = do 
   x <- stext 
