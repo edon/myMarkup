@@ -17,8 +17,18 @@ parseMarkup = testMarkup parser
 -- main parser 
 parser :: MarkupParser MarkupAST
 parser = do 
-  xs <- many $ paragraph <|> header 
+  xs <- many $ paragraph <|> header <|> blockquote
   return $ Node Body xs
+
+blockquote :: MarkupParser MarkupAST
+blockquote = do 
+  xs <- many1 $ preceededPargraph $ hasIndent 2
+  return $ Node BlockQuote xs
+
+hasIndent :: Int -> MarkupParser ()
+hasIndent i = do
+  x <- indent
+  if x == i then return () else pzero
 
 header :: MarkupParser MarkupAST
 header = do 
@@ -27,9 +37,13 @@ header = do
   return $ Node (Header i) [Leaf xs]
 
 paragraph :: MarkupParser MarkupAST
-paragraph = do 
-  x <- stext 
-  xs <- manyTill (try (newline >> stext) <|> stext) (try paragraphEnd)
+paragraph = preceededPargraph (return ())
+
+preceededPargraph :: MarkupParser () -> MarkupParser MarkupAST
+preceededPargraph p = do
+  p
+  x <- stext
+  xs <- manyTill (try (newline >> p >> stext) <|> stext) (try paragraphEnd)
   return $ Node Paragraph [Leaf $ concatWithSpace (x:xs)]
 
 -- A paragraph ends because of two new lines, with spaces
