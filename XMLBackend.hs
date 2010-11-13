@@ -10,7 +10,13 @@ taggedToXML (Tag t x) =
 
 markupToXML :: MarkupAST -> String
 markupToXML s = 
-    let markupToXML' _ (Leaf xs) = concatMap taggedToXML xs
+    let markupToXML' _ (Node Body []) = 
+            "<body/>\n"
+        markupToXML' _ (Node Body xs) = 
+            "<body>\n"
+            ++ concatMap (markupToXML' 4) xs 
+            ++ "</body>\n"
+        markupToXML' _ (Leaf xs) = concatMap taggedToXML xs
         markupToXML' i (Node Paragraph xs) = 
             replicate i ' ' 
             ++ "<p>"
@@ -54,6 +60,4 @@ markupToXML s =
             ++ concatMap (markupToXML' (i+4)) xs
             ++ replicate i ' '
             ++ "</li>\n"
-    in "<body>\n" ++
-       markupToXML' 4 s ++
-       "</body>\n"
+    in markupToXML' 0 s

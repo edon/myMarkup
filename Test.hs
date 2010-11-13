@@ -28,10 +28,24 @@ printSingleTest :: String -> IO String
 printSingleTest s = do
   b <- testFile $ testsDir ++ s
   if b then (return $ s ++ "  ----  PASS\n")
-       else (return $ s ++ "  ---- FAIL\n")
+       else (return $ s ++ "  #### FAIL\n")
 
 runAllTests :: IO String
 runAllTests = do 
   ts <- testsNames
   ps <- sequence $ printSingleTest <$> ts 
   return $ concat ps
+
+printAllTests :: IO ()
+printAllTests = runAllTests >>= putStr
+
+putXML :: FilePath -> IO ()
+putXML fp = readFile fp >>= putStr . markupToXML . fromRight . parseMarkup 
+
+fromRight :: (Show a) => Either a b -> b
+fromRight x = case x of 
+                Right r -> r
+                Left l -> error $ show l
+                
+
+main = printAllTests

@@ -16,13 +16,16 @@ parseMarkup = testMarkup parser
 
 -- main parser 
 parser :: MarkupParser MarkupAST
-parser = paragraph 
+parser = do 
+  xs <- many paragraph
+  return $ Node Body xs
 
+-- TODO: me i bashku stext-at me spejs n'mes
 paragraph :: MarkupParser MarkupAST
 paragraph = do 
-  xs <- many1 stext
-  paragraphEnd
-  return $ Node Paragraph [Leaf xs]
+  x <- stext 
+  xs <- manyTill (try (newline >> stext) <|> stext) (try paragraphEnd)
+  return $ Node Paragraph [Leaf $ concatWithSpace (x:xs)]
 
 -- A paragraph ends because of two new lines, with spaces
 -- in between, or one newline and eof or just eof.
@@ -84,3 +87,11 @@ orderedliste
   = mytoken (\tok -> case tok of 
                       T.OrderedListE -> Just ()
                       other        -> Nothing)
+
+concatWithSpace :: [TaggedMarkup] -> [TaggedMarkup]
+concatWithSpace [] = []
+concatWithSpace [x] = [x] 
+concatWithSpace (Text t1:Text t2:xs) = 
+    concatWithSpace $ (Text $ t1 ++ " " ++ t2):xs
+concatWithSpace (x:xs) = x : concatWithSpace xs 
+

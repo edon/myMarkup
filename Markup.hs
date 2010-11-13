@@ -13,7 +13,8 @@ data ListType =
       deriving (Show)
 
 data Node = 
-    Paragraph
+    Body
+    | Paragraph
     | Header Int
     | BlockQuote
     | List ListType
@@ -25,4 +26,3 @@ data MarkupAST =
     Node Node [MarkupAST] 
     | Leaf Text
       deriving (Show) 
-
