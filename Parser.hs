@@ -17,12 +17,27 @@ parseMarkup = testMarkup parser
 -- main parser 
 parser :: MarkupParser MarkupAST
 parser = do 
-  xs <- many $ paragraph <|> header <|> blockquote
+  xs <- many $ paragraph <|> header <|> (try blockquote) <|> list
   return $ Node Body xs
+
+list :: MarkupParser MarkupAST
+list = (try $ listP Ordered (orderedliste)) 
+       <|> (listP Unordered (unorderedliste))
+
+listP :: ListType -> MarkupParser () -> MarkupParser MarkupAST
+listP l p = do 
+  xs <- many1 $ listelementP p
+  return $ Node (List l) xs
+
+listelementP :: MarkupParser () -> MarkupParser MarkupAST
+listelementP p = do
+  p <- preceededPargraph (hasIndent 2 >> p) (hasIndent 4)
+  ps <- many $ try $ preceededPargraph (hasIndent 4) (hasIndent 4)
+  return $ Node ListItem [p]
 
 blockquote :: MarkupParser MarkupAST
 blockquote = do 
-  xs <- many1 $ preceededPargraph $ hasIndent 2
+  xs <- many1 $ preceededPargraph (hasIndent 2) (hasIndent 2)
   return $ Node BlockQuote xs
 
 hasIndent :: Int -> MarkupParser ()
@@ -37,13 +52,13 @@ header = do
   return $ Node (Header i) [Leaf xs]
 
 paragraph :: MarkupParser MarkupAST
-paragraph = preceededPargraph (return ())
+paragraph = preceededPargraph (return ()) (return ())
 
-preceededPargraph :: MarkupParser () -> MarkupParser MarkupAST
-preceededPargraph p = do
-  p
+preceededPargraph :: MarkupParser () -> MarkupParser () -> MarkupParser MarkupAST
+preceededPargraph p1 p2 = do
+  p1
   x <- stext
-  xs <- manyTill (try (newline >> p >> stext) <|> stext) (try paragraphEnd)
+  xs <- manyTill (try (newline >> p2 >> stext) <|> stext) (try paragraphEnd)
   return $ Node Paragraph [Leaf $ concatWithSpace (x:xs)]
 
 -- A paragraph ends because of two new lines, with spaces
